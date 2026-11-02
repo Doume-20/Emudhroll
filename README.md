@@ -21,7 +21,7 @@ The proxy listens on port 8080.
 4. Enable Use the same proxy for all protocols.
 5. Enter your computer's IP and port 8080.
 6. Continue through OOBE and it should unenrolol
-7. **Note:** If you see a "can't reach Google" error and the Chromebook is on version 152 or below, powerwash and try again (this indicates revocation occurred and the client no longer trusts the eMudhra cert). Another edge case is the Chromebook not actually connecting to the proxy due to firewall issues on the host (indicative of no requests being logged in verbose mode), powerwashing will not help in this case as the issue would need to be resolved on the host side.
+7. **Note:** If you see a "can't reach Google" error and the Chromebook is on version 152 or below, powerwash and try again (this indicates revocation occurred and the client no longer trusts the eMudhra cert). Another edge case is the Chromebook not actually connecting to the proxy due to firewall issues on the host (indicative of no requests being logged in verbose mode), powerwashing will not help in this case as the issue would need to be resolved on the host side. Also, You must powerwash again for every failed attempt as there is a 99% chance that you got revoked.
 
 ## Permanent unenrollment (--permanent)
 

@@ -29,6 +29,7 @@ The proxy listens on port 8080.
 2. Go through OOBE on the Chromebook.
 3. Powerwash the device after the proxy says it unenrolled
 4. Once powerwashed, It will successfully unenrollol
+5. **Note:** If your school has disabled the device you can't do the permanent method and must do the temp method.
 
 ## Re-enroll (--enroll)
 

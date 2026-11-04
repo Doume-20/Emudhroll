@@ -10,9 +10,9 @@ from mitmproxy.tools.dump import DumpMaster
 
 from dmbackend import device_management_backend_pb2 as proto
 
-args = argparse.ArgumentParser()
-args.add_argument("-v", "--verbose", action="store_true", help="enable mitmproxy verbose logging")
-args = args.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("-v", "--verbose", action="store_true", help="enable mitmproxy verbose logging")
+args = parser.parse_args()
 
 class DMProxy:
     def __init__(self) -> None:
@@ -22,6 +22,7 @@ class DMProxy:
         if "efniojlnjndmcbiieegkicadnoecjjef" in flow.request.path:
             flow.response = http.Response.make(403)
             print("[proxy] blocked PKIMetadata component from being fetched")
+            return
 
         if "/devicemanagement/" not in flow.request.path:
             return
@@ -41,14 +42,12 @@ class DMProxy:
             response = proto.DeviceManagementResponse()
             response.device_state_retrieval_response.restore_mode = 0
 
-            payload = response.SerializeToString()
             flow.response = http.Response.make(
-                200, payload,
+                200, response.SerializeToString(),
                 {"Content-Type": "application/x-protobuffer"},
             )
 
             print("[proxy] falling back, sent crafted device state retrieval response")
-            return
 
 async def main():
     opts = Options(allow_hosts=["m.google.com", "edgedl.me.gvt1.com"])

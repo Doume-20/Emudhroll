@@ -19,6 +19,10 @@ class DMProxy:
         self.psm_response = (Path(__file__).resolve().parent / "payload" / "psm_response.bin").read_bytes()
 
     def request(self, flow: http.HTTPFlow) -> None:
+        if "efniojlnjndmcbiieegkicadnoecjjef" in flow.request.path:
+            flow.response = http.Response.make(403)
+            print("[proxy] blocked PKIMetadata component from being fetched")
+
         if "/devicemanagement/" not in flow.request.path:
             return
 
@@ -47,7 +51,7 @@ class DMProxy:
             return
 
 async def main():
-    opts = Options(allow_hosts=["m.google.com"])
+    opts = Options(allow_hosts=["m.google.com", "edgedl.me.gvt1.com"])
     master = DumpMaster(opts, with_termlog=args.verbose, with_dumper=args.verbose)
     master.addons.add(DMProxy())
 

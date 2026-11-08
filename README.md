@@ -9,7 +9,7 @@
 
 The proxy listens on port 8080.
 
-## Chromebook setup (normal unenroll) — works on version 152 and below (if it doesn't work on 152, try a lower version  like 150
+## Chromebook setup (normal unenroll) — works on version 152 and below (if it doesn't work on 152, try a lower version like 151.0.7922.221)
 
 1. Powerwash the Chromebook.
 2. On the Welcome OOBE screen, connect to Wi-Fi from the bottom right quick settings tray and open its proxy settings from there as well. (it is necessary to do it on the welcome as revocation will occur otherwise if not done fast enough)

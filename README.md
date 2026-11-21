@@ -1,31 +1,49 @@
+# Emudhroll
+
+Unenrollment using the compromised eMudhra intermediate CA certificates to intercept and spoof ChromeOS device management requests. Only works on ChromeOS versions 152 and below.
+
 # Setup
 
 1. Clone the repo:
-   git clone https://github.com/SPIRAME/Emudhroll && cd Emudhroll
+   `git clone https://github.com/SPIRAME/Emudhroll && cd Emudhroll`
 2. Install requirements:
-   pip install -r requirements.txt
-3. Run the proxy:
-   python main.py
+   `pip install -r requirements.txt`
+3. Run the proxy server:
+   `python main.py [-e] [-p] [-v] [-P <port>]`
 
-The proxy listens on port 8080.
+The proxy listens on port `8080` by default.
 
-## Chromebook setup (normal unenroll) — works on version 152 and below (if it doesn't work on 152, try a lower version like 151.0.7922.221)
+# Instructions
 
 1. Powerwash the Chromebook.
-2. On the Welcome OOBE screen, connect to Wi-Fi from the bottom right quick settings tray and open its proxy settings from there as well. (it is necessary to do it on the welcome as revocation will occur otherwise if not done fast enough)
-3. Set to Manual proxy configuration.
-4. Enable Use the same proxy for all protocols.
-5. Enter your computer's IP and port 8080.
-6. Continue through OOBE and it should unenrolol
-7. **Note:** If you see a "can't reach Google" error and the Chromebook is on version 152 or below, powerwash and try again (this indicates revocation occurred and the client no longer trusts the eMudhra cert). Another edge case is the Chromebook not actually connecting to the proxy due to firewall issues on the host (indicative of no requests being logged in verbose mode), powerwashing will not help in this case as the issue would need to be resolved on the host side. Also, You must powerwash again for every failed attempt as there is a 99% chance that you got revoked.
+2. On the welcome screen, open the quick settings tray in the bottom right corner, connect to Wi-Fi, and open the network's proxy settings from the same tray.
+3. Select **Manual proxy configuration**.
+4. Enable **Use the same proxy for all protocols**.
+5. Enter your computer's local IP address and port `8080`.
+6. Continue through setup as normal and it should unenrolol. It is necessary to do this as fast as possible, as revocation will occur if not done fast enough and you will have to powerwash and try again.
 
-## Permanent unenrollment
-is now patched :( and has been removed
+# Re-enrollment
+
+If you previously unenrolled using permanent mode and still have your DMToken backup saved (saved to `dmtoken.txt` in the directory you ran the script from), it is possible to temporarily re-enroll on versions 152 and below after the patch.
+
+The instructions to use are the same as normal, just pass the `-e` argument to `main.py`
+
+> [!CAUTION]
+> Due to the serverside changes, this will not persist after a powerwash.
+
+# Troubleshooting
+
+**"Can't reach Google" error:** If the Chromebook is on version 152 or below, this indicates the compromised eMudhra certificates have been revoked and are no longer trusted by the client. You will need to powerwash and try again.
+
+**Chromebook not connecting to the proxy:** If no requests are being logged in verbose mode (`-v`), this is a firewall issue on the host side blocking incoming connections. Powerwashing will not help, as the issue will need to be resolved on the host side.
+
+> [!WARNING]
+> You must powerwash and try again for every failed attempt as there is a 99% chance that you got revoked.
 
 # Credits
 
-1. Lxrd for for getting the unenrollment to work using the Emudhra CA Compromise
+1. Lxrd for getting the unenrollment to work using the compromised eMudhra CA certificates
 2. Katie for improving the scripts
-3. Emudhra thank you for your incompetency
+3. eMudhra for being incompetent and even allowing this to happen
 
 [Join the Discord](https://discord.gg/d3B2FtxrpF)
